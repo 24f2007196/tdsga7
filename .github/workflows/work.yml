@@ -2,7 +2,9 @@ name: TDS GA7 Release Gate
 
 on:
   push:
-    branches: [main]
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,7 +16,8 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: "TDS identity: 24f2007196@ds.study.iitm.ac.in"
-        run: 'echo "TDS identity: 24f2007196@ds.study.iitm.ac.in"'
+        run: |
+          echo 'TDS identity: 24f2007196@ds.study.iitm.ac.in'
 
       - name: Build and test release gate
         run: |
