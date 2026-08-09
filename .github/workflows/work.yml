@@ -1,0 +1,62 @@
+name: TDS GA7 Release Gate
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  release-gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: TDS identity: 24f2007196@ds.study.iitm.ac.in
+        run: echo "TDS identity: 24f2007196@ds.study.iitm.ac.in"
+
+      - name: Build and test release gate
+        run: |
+          set -euo pipefail
+          trap 'docker compose down' EXIT
+          docker compose up --build -d
+          sleep 3
+          python3 - <<'PY'
+          import json
+          from urllib.request import Request, urlopen
+
+          payload = {
+              "target": "preview",
+              "event": "pull_request",
+              "ref": "refs/pull/1/merge",
+              "workflow": {
+                  "trigger": "pull_request",
+                  "permissions": {"contents": "read", "packages": "write", "id-token": "none"},
+                  "testsPassed": True,
+                  "matrixComplete": True,
+                  "failFast": False,
+                  "actions": [
+                      {"owner": "actions", "name": "checkout", "ref": "v4"},
+                      {"owner": "example", "name": "deploy", "ref": "0123456789abcdef0123456789abcdef01234567"},
+                  ],
+              },
+              "image": {
+                  "multiStage": True,
+                  "runsAsRoot": False,
+                  "secretMode": "none",
+                  "criticalVulnerabilities": 0,
+                  "digestPinned": True,
+              },
+          }
+          request = Request(
+              "http://127.0.0.1:7002/release-gate",
+              data=json.dumps(payload).encode(),
+              headers={"Content-Type": "application/json"},
+              method="POST",
+          )
+          with urlopen(request) as response:
+              result = json.load(response)
+          assert result == {"decision": "promote", "violations": []}, result
+          print(result)
+          PY

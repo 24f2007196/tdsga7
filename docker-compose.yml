@@ -1,0 +1,10 @@
+services:
+  api:
+    build: .
+    ports:
+      - "7002:7002"
+    environment:
+      OPENROUTER_API_KEY: ${OPENROUTER_API_KEY:-}
+      OPENROUTER_MODEL: ${OPENROUTER_MODEL:-}
+      IR_OPENROUTER_MODEL: ${IR_OPENROUTER_MODEL:-}
+      IR_OPENROUTER_MODEl: ${IR_OPENROUTER_MODEl:-}
